@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAMPAR SGC Digital v0.6</title>
+  <style>
+    :root{
+      --bg:#f5f2ee;
+      --panel:#ffffff;
+      --panel-soft:#faf8f6;
+      --line:#e2ddd6;
+      --text:#1d2430;
+      --muted:#6d7685;
+      --green:#1f6f43;
+      --green-soft:#edf7f0;
+      --amber:#8b5a1f;
+      --amber-soft:#fbf3e8;
+      --brown:#2d1b12;
+      --accent:#0d1b4c;
+      --shadow:0 12px 34px rgba(31, 25, 21, .08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);font-family:Arial, Helvetica, sans-serif;color:var(--text)}
+    .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+    .sidebar{background:linear-gradient(180deg,#2b1b12 0%,#342117 100%);color:#fff;padding:22px 18px;display:flex;flex-direction:column;gap:18px}
+    .brand{display:flex;align-items:center;gap:12px;padding:10px 8px 18px;border-bottom:1px solid rgba(255,255,255,.12)}
+    .brand img{width:66px;height:66px;object-fit:contain;background:#fff;border-radius:16px;padding:6px}
+    .brand h1{font-size:28px;margin:0;color:#fff;letter-spacing:.4px}
+    .brand p{margin:4px 0 0;color:rgba(255,255,255,.78);font-size:12px;line-height:1.3}
+    .nav{display:flex;flex-direction:column;gap:8px}
+    .nav button{border:none;background:transparent;color:#fff;text-align:left;padding:13px 14px;border-radius:14px;font-size:15px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s}
+    .nav button:hover{background:rgba(255,255,255,.08)}
+    .nav button.active{background:linear-gradient(90deg,#3b6c35 0%,#4a8a43 100%);box-shadow:0 8px 20px rgba(0,0,0,.22)}
+    .nav .icon{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:14px}
+    .side-foot{margin-top:auto;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;font-size:12px;color:rgba(255,255,255,.75)}
+    .main{padding:20px 22px 28px}
+    .topbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px 20px;box-shadow:var(--shadow)}
+    .page-head{display:flex;align-items:center;gap:16px}
+    .page-head .cube{width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#cf9a4a,#8b5a1f);display:grid;place-items:center;color:#fff;font-size:22px}
+    .page-head .kicker{font-size:12px;font-weight:700;letter-spacing:1.4px;color:var(--green);text-transform:uppercase}
+    .page-head h2{margin:2px 0 0;font-size:24px;color:var(--accent)}
+    .page-head p{margin:3px 0 0;color:var(--muted)}
+    .search{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel-soft)}
+    .search input{border:none;background:transparent;outline:none;width:100%;font-size:14px;color:var(--text)}
+    .user{display:flex;align-items:center;gap:12px}
+    .avatar{width:44px;height:44px;border-radius:50%;background:#ede9e4;color:#374151;display:grid;place-items:center;font-weight:700}
+    .user strong{display:block}
+    .user span{display:block;font-size:12px;color:var(--muted)}
+    .page{display:none;margin-top:18px}
+    .page.active{display:block}
+    .hero{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .summary{padding:18px}
+    .summary .label{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+    .summary .value{font-size:34px;font-weight:800;margin:6px 0 3px;color:var(--accent)}
+    .summary .sub{color:var(--muted);font-size:13px}
+    .summary.green{background:linear-gradient(180deg,#f8fcf9, #eef7f1)}
+    .summary.amber{background:linear-gradient(180deg,#fdfaf6,#fbf2e8)}
+    .toolbar{display:grid;grid-template-columns:1.2fr 1.2fr 1fr 1fr auto;gap:12px;align-items:end;margin-bottom:14px}
+    .field label{display:block;font-weight:700;font-size:13px;color:#3a4557;margin:0 0 8px}
+    .field input,.field select{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:14px;color:var(--text)}
+    .btn{border:none;border-radius:14px;padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer}
+    .btn.primary{background:#2d7b38;color:#fff}
+    .btn.secondary{background:#fff;border:1px solid var(--line);color:var(--accent)}
+    .inv-top{display:grid;grid-template-columns:1fr .95fr .95fr .85fr;gap:12px;margin-bottom:14px;align-items:stretch}
+    .product-card{padding:12px 14px;display:grid;grid-template-columns:72px 1fr auto;gap:12px;align-items:center;min-height:88px}
+    .product-card img{width:72px;height:54px;object-fit:cover;border-radius:10px;display:block}
+    .product-card .small-title{font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);font-weight:700}
+    .product-card h3{margin:4px 0 5px;font-size:16px;color:var(--accent)}
+    .meta-grid{display:flex;gap:18px;flex-wrap:wrap;color:#4b5563;font-size:12px}
+    .kpi-limpios{padding:16px 18px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+    .kpi-limpios .title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+    .kpi-limpios .name{font-size:15px;font-weight:700;margin-top:2px}
+    .kpi-limpios .big{font-size:36px;font-weight:800;line-height:1;margin:6px 0;color:var(--green)}
+    .kpi-limpios.amber .big,.stage.amber .num,.section-tag.amber{color:var(--amber)}
+    .kpi-limpios.amber{background:var(--amber-soft)}
+    .kpi-limpios.green{background:var(--green-soft)}
+    .kpi-limpios.total{background:#f8f8f8}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;padding:18px 20px 8px}
+    .panel-head h3{margin:0;font-size:22px;color:var(--accent)}
+    .panel-head p{margin:4px 0 0;color:var(--muted)}
+    .section-tag{background:#eef7f0;color:var(--green);padding:10px 14px;border-radius:14px;font-weight:800;font-size:14px}
+    .section-tag.amber{background:#fbf3e8}
+    .stage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 20px 14px}
+    .stage{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel-soft)}
+    .stage .name{font-weight:700;color:#344054;margin-bottom:10px}
+    .stage .num{font-size:28px;font-weight:800;color:var(--green)}
+    .stage .unit{font-size:12px;color:var(--muted)}
+    .stage.limpios{background:linear-gradient(180deg,#f9fcfa,#edf7f0)}
+    .lots{padding:0 20px 18px}
+    .lots h4{margin:0 0 10px;font-size:15px;color:#25324b}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px 10px;border-top:1px solid var(--line);font-size:14px;text-align:left}
+    th{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);background:#faf8f6}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#fbf3e8;color:#9a5d15}
+    .table-btn{padding:9px 12px;border-radius:10px;border:1px solid #85bf92;background:#fff;color:#2d7b38;font-weight:700}
+    .concentrate{margin-top:14px;padding:0 0 6px}
+    .concentrate-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 8px}
+    .concentrate-head h3{margin:0;font-size:18px;color:var(--accent)}
+    .concentrate-head p{margin:2px 0 0;color:var(--muted)}
+    .badge-total{display:inline-flex;align-items:center;gap:10px;background:#eef7f0;color:var(--green);padding:12px 16px;border-radius:14px;font-weight:800}
+    .subtle-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .page-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+    .list-card{padding:18px}
+    .list-card h3,.brief h3{margin:0 0 12px;color:var(--accent)}
+    .simple-list{display:grid;gap:10px}
+    .simple-item{display:flex;justify-content:space-between;gap:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+    .simple-item strong{display:block}
+    .simple-item span{display:block;font-size:12px;color:var(--muted)}
+    .brief{padding:18px}
+    .mini-kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .mini-kpi .box{padding:16px;border:1px solid var(--line);border-radius:14px;background:#fff}
+    .mini-kpi .box strong{font-size:28px;color:var(--accent);display:block}
+    .muted-note{font-size:12px;color:var(--muted)}
+    .links{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .links a{display:inline-block;padding:10px 12px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--accent);background:#fff;font-weight:700}
+    @media (max-width:1200px){
+      .hero,.inv-top,.two-col,.page-grid,.toolbar{grid-template-columns:1fr}
+      .app{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .topbar{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="assets/logo-campar.png" alt="CAMPAR" />
+      <div>
+        <h1>CAMPAR</h1>
+        <p>SGC Digital<br/>Versión v0.6 · interfaz depurada</p>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="active" data-page="dashboard"><span class="icon">⌂</span><span>Inicio</span></button>
+      <button data-page="orders"><span class="icon">▣</span><span>Órdenes</span></button>
+      <button data-page="production"><span class="icon">▤</span><span>Producción</span></button>
+      <button data-page="inventory"><span class="icon">▦</span><span>Inventario</span></button>
+      <button data-page="inspections"><span class="icon">✓</span><span>Inspecciones</span></button>
+      <button data-page="deliveries"><span class="icon">▰</span><span>Entregas</span></button>
+      <button data-page="ncs"><span class="icon">△</span><span>No conformidades</span></button>
+    </nav>
+    <div class="side-foot">Diseño sobrio, enfoque operativo y navegación reducida a 7 módulos principales.</div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="page-head">
+        <div class="cube">◫</div>
+        <div>
+          <div class="kicker">CAMPAR · SISTEMA DE GESTIÓN Y CONTROL OPERATIVO</div>
+          <h2 id="title">Inicio</h2>
+          <p id="subtitle">Resumen ejecutivo del flujo operativo.</p>
+        </div>
+      </div>
+      <div class="search"><span>⌕</span><input placeholder="Buscar OC, producto, lote o código..." /></div>
+      <div class="user">
+        <div class="avatar">SC</div>
+        <div><strong>Sandra Camacho</strong><span>Dirección</span></div>
+      </div>
+    </header>
+
+    <section id="dashboard" class="page active">
+      <div class="hero">
+        <div class="card summary"><div class="label">Órdenes activas</div><div class="value">12</div><div class="sub">4 de prioridad alta</div></div>
+        <div class="card summary green"><div class="label">Lotes limpios</div><div class="value">9</div><div class="sub">Listos para inspección CAMPAR</div></div>
+        <div class="card summary amber"><div class="label">Pendientes de liberación</div><div class="value">3</div><div class="sub">Requieren autorización de Gustavo/Alessandri</div></div>
+        <div class="card summary"><div class="label">NC abiertas</div><div class="value">2</div><div class="sub">1 crítica y 1 mayor</div></div>
+      </div>
+      <div class="page-grid">
+        <div class="card list-card">
+          <h3>Prioridades de hoy</h3>
+          <div class="simple-list">
+            <div class="simple-item"><div><strong>OC 4501239205</strong><span>Tarima 125 × 102 × 13 cm HT · Planta 3</span></div><div><strong>300 pzas</strong><span>Producción: Limpios</span></div></div>
+            <div class="simple-item"><div><strong>OC 4501247859</strong><span>Tarima 122 × 98 × 13.7 cm HT · Planta 1</span></div><div><strong>482 pzas</strong><span>Producción: En estufado</span></div></div>
+            <div class="simple-item"><div><strong>OC 4501239222</strong><span>Tarima PBA 142 × 112 × 11.45 cm · Planta 2</span></div><div><strong>400 pzas</strong><span>Producción: Mixta</span></div></div>
+          </div>
+        </div>
+        <div class="card brief">
+          <h3>Indicadores rápidos</h3>
+          <div class="mini-kpi">
+            <div class="box"><span class="muted-note">Cosme</span><strong>820</strong><span class="muted-note">unidades totales</span></div>
+            <div class="box"><span class="muted-note">Duma</span><strong>630</strong><span class="muted-note">unidades totales</span></div>
+            <div class="box"><span class="muted-note">Entregas programadas</span><strong>4</strong><span class="muted-note">Próximas 48 h</span></div>
+            <div class="box"><span class="muted-note">Inspecciones hoy</span><strong>5</strong><span class="muted-note">2 ya liberadas</span></div>
+          </div>
+          <div class="links">
+            <a href="docs/MAN-SGC-01_Manual_de_Calidad_e_Inspeccion_CAMPAR_v1.2.pdf" target="_blank">Manual de calidad</a>
+            <a href="docs/DOC-SGC-04_Compendio_Maestro_de_Procesos_y_Documentacion_CAMPAR_v1.0.pdf" target="_blank">Compendio maestro</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="orders" class="page">
+      <div class="card list-card">
+        <h3>Órdenes de compra</h3>
+        <table>
+          <thead><tr><th>OC</th><th>Producto</th><th>Cantidad</th><th>Planta</th><th>Fecha entrega</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>4501239205</td><td>Tarima 125 × 102 × 13 cm HT</td><td>300</td><td>Planta 3</td><td>09/09/2026</td><td>Limpios</td></tr>
+            <tr><td>4501247859</td><td>Tarima 122 × 98 × 13.7 cm HT</td><td>482</td><td>Planta 1</td><td>14/09/2026</td><td>En estufado</td></tr>
+            <tr><td>4501239222</td><td>207457 · Tarima PBA</td><td>400</td><td>Planta 2</td><td>15/09/2026</td><td>Mixta</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="production" class="page">
+      <div class="hero">
+        <div class="card summary"><div class="label">En corte</div><div class="value">90</div><div class="sub">ambos aserraderos</div></div>
+        <div class="card summary"><div class="label">En armado</div><div class="value">140</div><div class="sub">ambos aserraderos</div></div>
+        <div class="card summary"><div class="label">En estufado</div><div class="value">110</div><div class="sub">ambos aserraderos</div></div>
+        <div class="card summary green"><div class="label">Limpios</div><div class="value">60</div><div class="sub">listos para inspección</div></div>
+      </div>
+      <div class="two-col">
+        <div class="card list-card"><h3>Cosme (MX-1361)</h3><table><thead><tr><th>Producto</th><th>Etapa</th><th>Cantidad</th></tr></thead><tbody><tr><td>207457</td><td>Limpios</td><td>30</td></tr><tr><td>204265</td><td>En estufado</td><td>60</td></tr><tr><td>207509</td><td>En armado</td><td>55</td></tr></tbody></table></div>
+        <div class="card list-card"><h3>Duma (MX-1071)</h3><table><thead><tr><th>Producto</th><th>Etapa</th><th>Cantidad</th></tr></thead><tbody><tr><td>207457</td><td>Limpios</td><td>30</td></tr><tr><td>204265</td><td>En estufado</td><td>50</td></tr><tr><td>207509</td><td>En corte</td><td>40</td></tr></tbody></table></div>
+      </div>
+    </section>
+
+    <section id="inventory" class="page">
+      <div class="toolbar">
+        <div class="field"><label>Producto</label><select><option>207457 – Tarima PBA</option><option>204265 – Tarima Alcoholera 122 × 98 × 13.7 cm HT</option></select></div>
+        <div class="field"><label>Buscar por código o nombre</label><input placeholder="Ej. 207457, Tarima PBA..." /></div>
+        <div class="field"><label>Aserradero</label><select><option>Todos los aserraderos</option><option>Cosme</option><option>Duma</option></select></div>
+        <div class="field"><label>Etapa</label><select><option>Todas las etapas</option><option>En corte</option><option>En armado</option><option>En estufado</option><option>Limpios</option></select></div>
+        <button class="btn primary">Aplicar filtros</button>
+      </div>
+
+      <div class="inv-top">
+        <div class="card product-card">
+          <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=300&q=60" alt="Tarima" />
+          <div>
+            <div class="small-title">Producto seleccionado</div>
+            <h3>207457 – Tarima PBA</h3>
+            <div class="meta-grid"><span>Tipo: Tarimas</span><span>Unidad: Piezas</span><span>Dim.: 1420 × 1120 × 114.5 mm</span></div>
+          </div>
+          <div style="font-size:18px;color:#6b7280">▾</div>
+        </div>
+        <div class="card kpi-limpios green">
+          <div class="title">Limpios</div>
+          <div class="name">Cosme (MX-1361)</div>
+          <div class="big">30</div>
+          <div class="sub">piezas</div>
+        </div>
+        <div class="card kpi-limpios amber">
+          <div class="title">Limpios</div>
+          <div class="name">Duma (MX-1071)</div>
+          <div class="big">30</div>
+          <div class="sub">piezas</div>
+        </div>
+        <div class="card kpi-limpios total">
+          <div class="title">Total</div>
+          <div class="name">Ambos aserraderos</div>
+          <div class="big" style="color:#1d2430">60</div>
+          <div class="sub">piezas limpias</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="panel-head">
+            <div><h3>Cosme (MX-1361)</h3><p>Inventario del producto por etapa de producción</p></div>
+            <div class="section-tag">Total: 180 piezas</div>
+          </div>
+          <div class="stage-grid">
+            <div class="stage"><div class="name">En corte</div><div class="num">40</div><div class="unit">piezas</div></div>
+            <div class="stage"><div class="name">En armado</div><div class="num">60</div><div class="unit">piezas</div></div>
+            <div class="stage"><div class="name">En estufado</div><div class="num">50</div><div class="unit">piezas</div></div>
+            <div class="stage limpios"><div class="name">Limpios</div><div class="num">30</div><div class="unit">piezas</div></div>
+          </div>
+          <div class="lots">
+            <h4>Lotes en etapa de Limpios · Cosme</h4>
+            <table>
+              <thead><tr><th>Lote</th><th>Cantidad</th><th>Fecha de producción</th><th>Observaciones</th><th>Acción</th></tr></thead>
+              <tbody>
+                <tr><td>CME-0001</td><td>10</td><td>12/04/2026</td><td>Listo para inspección</td><td><button class="table-btn">Inspeccionar lote</button></td></tr>
+                <tr><td>CME-0002</td><td>12</td><td>13/04/2026</td><td>Sin observaciones</td><td><button class="table-btn">Inspeccionar lote</button></td></tr>
+                <tr><td>CME-0003</td><td>8</td><td>14/04/2026</td><td>Listo para inspección</td><td><button class="table-btn">Inspeccionar lote</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="panel-head">
+            <div><h3>Duma (MX-1071)</h3><p>Inventario del producto por etapa de producción</p></div>
+            <div class="section-tag amber">Total: 220 piezas</div>
+          </div>
+          <div class="stage-grid">
+            <div class="stage"><div class="name">En corte</div><div class="num">50</div><div class="unit">piezas</div></div>
+            <div class="stage"><div class="name">En armado</div><div class="num">80</div><div class="unit">piezas</div></div>
+            <div class="stage"><div class="name">En estufado</div><div class="num">60</div><div class="unit">piezas</div></div>
+            <div class="stage limpios" style="background:var(--amber-soft)"><div class="name">Limpios</div><div class="num" style="color:var(--amber)">30</div><div class="unit">piezas</div></div>
+          </div>
+          <div class="lots">
+            <h4>Lotes en etapa de Limpios · Duma</h4>
+            <table>
+              <thead><tr><th>Lote</th><th>Cantidad</th><th>Fecha de producción</th><th>Observaciones</th><th>Acción</th></tr></thead>
+              <tbody>
+                <tr><td>DUM-0001</td><td>15</td><td>12/04/2026</td><td>Listo para inspección</td><td><button class="table-btn">Inspeccionar lote</button></td></tr>
+                <tr><td>DUM-0002</td><td>10</td><td>13/04/2026</td><td>Sin observaciones</td><td><button class="table-btn">Inspeccionar lote</button></td></tr>
+                <tr><td>DUM-0003</td><td>5</td><td>14/04/2026</td><td>Revisión de calidad</td><td><button class="table-btn">Inspeccionar lote</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card concentrate">
+        <div class="concentrate-head">
+          <div>
+            <h3>Concentrado general del producto</h3>
+            <p>Resumen del inventario por etapa y por aserradero</p>
+          </div>
+          <div class="badge-total">Total general: 400 piezas</div>
+        </div>
+        <table>
+          <thead><tr><th>Aserradero</th><th>En corte</th><th>En armado</th><th>En estufado</th><th>Limpios</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr><td>Cosme (MX-1361)</td><td>40</td><td>60</td><td>50</td><td>30</td><td><strong>180</strong></td></tr>
+            <tr><td>Duma (MX-1071)</td><td>50</td><td>80</td><td>60</td><td>30</td><td><strong>220</strong></td></tr>
+            <tr><td><strong>Total general</strong></td><td><strong>90</strong></td><td><strong>140</strong></td><td><strong>110</strong></td><td><strong>60</strong></td><td><strong>400</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="inspections" class="page">
+      <div class="page-grid">
+        <div class="card list-card"><h3>Lotes listos para inspección</h3><table><thead><tr><th>Lote</th><th>Aserradero</th><th>Producto</th><th>Muestra</th><th>Estado</th></tr></thead><tbody><tr><td>CME-0001</td><td>Cosme</td><td>207457</td><td>32</td><td><span class="pill">Pendiente</span></td></tr><tr><td>DUM-0001</td><td>Duma</td><td>207457</td><td>32</td><td><span class="pill">Pendiente</span></td></tr></tbody></table></div>
+        <div class="card brief"><h3>Criterio operativo</h3><p>La etapa <strong>Limpios</strong> habilita la inspección CAMPAR. La liberación o retención se registra en este módulo y no modifica la etapa física mostrada en inventario.</p><div class="links"><a href="docs/MAN-SGC-01_Manual_de_Calidad_e_Inspeccion_CAMPAR_v1.2.pdf" target="_blank">Abrir manual</a></div></div>
+      </div>
+    </section>
+
+    <section id="deliveries" class="page">
+      <div class="card list-card"><h3>Entregas programadas</h3><table><thead><tr><th>OC</th><th>Producto</th><th>Planta</th><th>Cantidad</th><th>Fecha</th><th>Estado</th></tr></thead><tbody><tr><td>4501239205</td><td>Tarima 125 × 102 × 13</td><td>Planta 3</td><td>300</td><td>10/09/2026</td><td>Programada</td></tr><tr><td>4501239222</td><td>207457 · Tarima PBA</td><td>Planta 2</td><td>200</td><td>12/09/2026</td><td>Pendiente</td></tr></tbody></table></div>
+    </section>
+
+    <section id="ncs" class="page">
+      <div class="subtle-grid">
+        <div class="card summary"><div class="label">NC abiertas</div><div class="value">2</div><div class="sub">Seguimiento activo</div></div>
+        <div class="card summary amber"><div class="label">Retrabajo</div><div class="value">1</div><div class="sub">Pendiente de reinspección</div></div>
+        <div class="card summary"><div class="label">Rechazos en planta</div><div class="value">1</div><div class="sub">Últimos 30 días</div></div>
+      </div>
+      <div class="card list-card" style="margin-top:14px"><h3>No conformidades registradas</h3><table><thead><tr><th>NC</th><th>Lote</th><th>Defecto</th><th>Severidad</th><th>Estado</th></tr></thead><tbody><tr><td>NC-026</td><td>DUM-0008</td><td>Humedad alta</td><td>Crítica</td><td>Retenido</td></tr><tr><td>NC-027</td><td>CME-0011</td><td>Variación dimensional</td><td>Mayor</td><td>Retrabajo</td></tr></tbody></table></div>
+    </section>
+  </main>
+</div>
+<script>
+  const meta = {
+    dashboard:['Inicio','Resumen ejecutivo del flujo operativo.'],
+    orders:['Órdenes','Seguimiento de órdenes de compra y prioridades.'],
+    production:['Producción','Avance por etapa en Cosme y Duma.'],
+    inventory:['Inventario','Vista por producto y por aserradero.'],
+    inspections:['Inspecciones','Control de lotes limpios y resultados de inspección.'],
+    deliveries:['Entregas','Programación y seguimiento de entregas a planta.'],
+    ncs:['No conformidades','Seguimiento de producto no conforme y retrabajos.']
+  };
+  document.querySelectorAll('#nav button').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const page = btn.dataset.page;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(page).classList.add('active');
+    document.getElementById('title').textContent = meta[page][0];
+    document.getElementById('subtitle').textContent = meta[page][1];
+  }));
+</script>
+</body>
+</html>
